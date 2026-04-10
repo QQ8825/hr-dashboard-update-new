@@ -1,7 +1,7 @@
 // lib/sheets.ts
 const SHEET_ID = '12OEW_fXE5NnGXdYEcbxnvoIOcDDwENP5B0T6Xx8Byec'
 const GID_MAIN  = '1209894745'
-const GID_ORDER = '856533147' // Sheet "1.1 Đơn hàng"
+const GID_ORDER = '1051409117' // Sheet "1.1 Đơn hàng"
 
 function getCsvUrl(gid: string) {
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`
