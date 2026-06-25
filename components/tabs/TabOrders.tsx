@@ -60,7 +60,8 @@ export default function TabOrders({ data }: { data: DashboardData }) {
       const q = search.toLowerCase()
       return o.viTri.toLowerCase().includes(q) ||
              o.team.toLowerCase().includes(q)  ||
-             o.nguoiDeXuat.toLowerCase().includes(q)
+             o.nguoiDeXuat.toLowerCase().includes(q) ||
+             o.lyDoTuyen.toLowerCase().includes(q)
     }
     return true
   }), [orders, filterMonth, filterStatus, filterTeam, search])
@@ -185,10 +186,10 @@ export default function TabOrders({ data }: { data: DashboardData }) {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
             <thead>
               <tr style={{ background: 'var(--bg2)', borderBottom: '2px solid var(--border)' }}>
-                {['Tháng','Team','Người đề xuất','Vị trí','Trạng thái','Cần tuyển (K)','Đã offer (L)','Đã nhận việc (M)','Còn lại (N)','Tiến độ'].map((h, i) => (
+                {['Tháng','Ngày nhận order','Team','Người đề xuất','Vị trí','Lý do tuyển','Trạng thái','Cần tuyển (K)','Đã offer (L)','Đã nhận việc (M)','Còn lại (N)','Tiến độ'].map((h, i) => (
                   <th key={h} style={{
                     padding: '10px 12px', whiteSpace: 'nowrap',
-                    textAlign: i >= 5 ? 'center' : 'left',
+                    textAlign: i >= 7 ? 'center' : 'left',
                     color: 'var(--text3)', fontWeight: 700, fontSize: 9,
                     textTransform: 'uppercase', letterSpacing: '.5px',
                   }}>{h}</th>
@@ -198,7 +199,7 @@ export default function TabOrders({ data }: { data: DashboardData }) {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={10} style={{ padding: '40px', textAlign: 'center', color: 'var(--text3)' }}>
+                  <td colSpan={12} style={{ padding: '40px', textAlign: 'center', color: 'var(--text3)' }}>
                     Không có dữ liệu phù hợp
                   </td>
                 </tr>
@@ -210,6 +211,10 @@ export default function TabOrders({ data }: { data: DashboardData }) {
                     {/* Tháng */}
                     <td style={{ padding: '10px 12px', color: '#4F8EF7', fontFamily: 'Space Mono,monospace', fontSize: 11, fontWeight: 700 }}>
                       {o.thangNum ? `T${o.thangNum}` : o.thang || '—'}
+                    </td>
+                    {/* Ngày nhận order */}
+                    <td style={{ padding: '10px 12px', color: 'var(--text2)', fontSize: 10, whiteSpace: 'nowrap', fontFamily: 'Space Mono,monospace' }}>
+                      {o.ngayNhanOrder || '—'}
                     </td>
                     {/* Team */}
                     <td style={{ padding: '10px 12px', color: 'var(--text2)' }}>
@@ -225,6 +230,10 @@ export default function TabOrders({ data }: { data: DashboardData }) {
                     {/* Vị trí */}
                     <td style={{ padding: '10px 12px', color: 'var(--text)', fontWeight: 600, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={o.viTri}>
                       {o.viTri}
+                    </td>
+                    {/* Lý do tuyển */}
+                    <td style={{ padding: '10px 12px', color: 'var(--text2)', fontSize: 10, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={o.lyDoTuyen}>
+                      {o.lyDoTuyen || '—'}
                     </td>
                     {/* Trạng thái */}
                     <td style={{ padding: '10px 12px' }}>
@@ -269,7 +278,7 @@ export default function TabOrders({ data }: { data: DashboardData }) {
             {filtered.length > 0 && (
               <tfoot>
                 <tr style={{ background: 'var(--bg2)', borderTop: '2px solid var(--border)' }}>
-                  <td colSpan={5} style={{ padding: '10px 12px', fontWeight: 700, color: 'var(--text)', fontSize: 11 }}>
+                  <td colSpan={7} style={{ padding: '10px 12px', fontWeight: 700, color: 'var(--text)', fontSize: 11 }}>
                     Tổng cộng ({filtered.length} đơn hàng)
                   </td>
                   <td style={{ padding: '10px 12px', textAlign: 'center', fontFamily: 'Space Mono,monospace', fontWeight: 700, color: '#4F8EF7', fontSize: 13 }}>{tongCanTuyen}</td>

@@ -63,6 +63,8 @@ export interface OrderRow {
   team: string           // Cột C (2)
   nguoiDeXuat: string    // Cột D (3)
   viTri: string          // Cột G (6)
+  ngayNhanOrder: string  // Tự dò theo header chứa "ngày nhận order"
+  lyDoTuyen: string      // Tự dò theo header chứa "lý do tuyển"
   trangThai: string      // Cột J (9):  "Đang tuyển" / "Hoàn thành" / "Tạm dừng"
   soLuong: number        // Cột K (10): Số lượng cần tuyển
   daOffer: number        // Cột L (11): Đã offer
@@ -152,18 +154,52 @@ function calcLevel(c: Omit<Candidate, 'level'>): string {
   return 'L0'
 }
 
+// Bỏ dấu tiếng Việt để khớp tên cột linh hoạt (không phụ thuộc dấu / hoa thường)
+function normHeader(s: string): string {
+  return (s || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .trim()
+}
+
 function parseOrders(rows: string[][]): OrderRow[] {
-  // Tìm header row
+  // Tìm header row — ưu tiên dòng chứa "VỊ TRÍ" (header thật của bảng đơn hàng),
+  // tránh khớp nhầm dòng tiêu đề "Đề xuất tuyển dụng tháng ..." (có chữ "tháng").
   let start = 0
-  for (let i = 0; i < Math.min(rows.length, 15); i++) {
-    const joined = rows[i].join('').toLowerCase()
-    if (
-      joined.includes('vị trí') || joined.includes('vi tri') ||
-      joined.includes('tháng') || joined.includes('thang') ||
-      joined.includes('team')
-    ) {
-      start = i + 1; break
+  let headerIdx = -1
+  for (let i = 0; i < Math.min(rows.length, 20); i++) {
+    const h = normHeader(rows[i].join(' '))
+    if (h.includes('vi tri')) { headerIdx = i; break }
+  }
+  // Fallback: nếu không thấy "vị trí", dùng cách dò rộng như cũ
+  if (headerIdx === -1) {
+    for (let i = 0; i < Math.min(rows.length, 20); i++) {
+      const h = normHeader(rows[i].join(' '))
+      if (h.includes('thang') || h.includes('team')) { headerIdx = i; break }
     }
+  }
+  start = headerIdx >= 0 ? headerIdx + 1 : 0
+
+  // Tự dò cột "Ngày nhận order" và "Lý do tuyển" theo tên header.
+  // Nếu sau này đổi vị trí cột trong sheet, chỉ cần header còn chứa từ khoá là vẫn nhận đúng.
+  let colNgayNhan = -1
+  let colLyDo = -1
+  if (headerIdx >= 0) {
+    const header = rows[headerIdx]
+    header.forEach((cell, idx) => {
+      const h = normHeader(cell)
+      if (colNgayNhan === -1 &&
+        (h.includes('ngay de xuat') || h.includes('ngay nhan') ||
+         h.includes('nhan order') || h.includes('ngay order') ||
+         h.includes('ngay tao'))) {
+        colNgayNhan = idx
+      }
+      if (colLyDo === -1 && (h.includes('ly do') || h.includes('li do'))) {
+        colLyDo = idx
+      }
+    })
   }
 
   const orders: OrderRow[] = []
@@ -184,6 +220,8 @@ function parseOrders(rows: string[][]): OrderRow[] {
       team:        r[2]  || '',   // Cột C
       nguoiDeXuat: r[3]  || '',   // Cột D
       viTri,                       // Cột G
+      ngayNhanOrder: colNgayNhan >= 0 ? (r[colNgayNhan] || '') : '',
+      lyDoTuyen:     colLyDo     >= 0 ? (r[colLyDo]     || '') : '',
       trangThai:   r[9]  || '',   // Cột J
       soLuong:     +r[10] || 0,   // Cột K
       daOffer:     +r[11] || 0,   // Cột L

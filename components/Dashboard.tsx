@@ -69,27 +69,35 @@ export default function Dashboard({ data: initialData }: { data: DashboardData }
   useEffect(() => {
     const root = document.documentElement
     if (dark) {
-      root.style.setProperty('--bg',      '#0D1117')
-      root.style.setProperty('--bg2',     '#161B22')
-      root.style.setProperty('--bg3',     '#1C2128')
-      root.style.setProperty('--bg4',     '#21262D')
-      root.style.setProperty('--border',  '#30363D')
-      root.style.setProperty('--border2', '#3D444D')
-      root.style.setProperty('--text',    '#E6EDF3')
-      root.style.setProperty('--text2',   '#8B949E')
-      root.style.setProperty('--text3',   '#6E7681')
-      document.body.style.background = '#0D1117'
+      root.style.setProperty('--bg',      '#0B0E14')
+      root.style.setProperty('--bg2',     '#11151D')
+      root.style.setProperty('--bg3',     '#161B26')
+      root.style.setProperty('--bg4',     '#1E2430')
+      root.style.setProperty('--border',  '#262D3A')
+      root.style.setProperty('--border2', '#343D4D')
+      root.style.setProperty('--text',    '#EAF0F7')
+      root.style.setProperty('--text2',   '#93A0B4')
+      root.style.setProperty('--text3',   '#66718A')
+      root.style.setProperty('--shadow-sm', '0 1px 2px rgba(0,0,0,.35)')
+      root.style.setProperty('--shadow',    '0 1px 2px rgba(0,0,0,.4), 0 12px 32px -16px rgba(0,0,0,.7)')
+      root.style.setProperty('--card-hi',   'rgba(255,255,255,.045)')
+      root.style.setProperty('--ambient',   'radial-gradient(1200px 460px at 50% -8%, rgba(79,142,247,.12), rgba(155,111,247,.06) 38%, transparent 68%)')
+      document.body.style.background = '#0B0E14'
     } else {
-      root.style.setProperty('--bg',      '#F6F8FA')
+      root.style.setProperty('--bg',      '#F1F4F9')
       root.style.setProperty('--bg2',     '#FFFFFF')
-      root.style.setProperty('--bg3',     '#F0F3F6')
-      root.style.setProperty('--bg4',     '#E8EDF2')
-      root.style.setProperty('--border',  '#D0D7DE')
-      root.style.setProperty('--border2', '#B0BABE')
-      root.style.setProperty('--text',    '#1A2332')
-      root.style.setProperty('--text2',   '#57606A')
-      root.style.setProperty('--text3',   '#6E7781')
-      document.body.style.background = '#F6F8FA'
+      root.style.setProperty('--bg3',     '#FFFFFF')
+      root.style.setProperty('--bg4',     '#EDF1F7')
+      root.style.setProperty('--border',  '#E2E8F2')
+      root.style.setProperty('--border2', '#CDD6E4')
+      root.style.setProperty('--text',    '#0F1729')
+      root.style.setProperty('--text2',   '#5B6678')
+      root.style.setProperty('--text3',   '#8A93A6')
+      root.style.setProperty('--shadow-sm', '0 1px 2px rgba(16,24,40,.05)')
+      root.style.setProperty('--shadow',    '0 1px 2px rgba(16,24,40,.06), 0 12px 32px -16px rgba(16,24,40,.16)')
+      root.style.setProperty('--card-hi',   'rgba(255,255,255,.9)')
+      root.style.setProperty('--ambient',   'radial-gradient(1200px 460px at 50% -8%, rgba(79,142,247,.10), rgba(155,111,247,.04) 38%, transparent 70%)')
+      document.body.style.background = '#F1F4F9'
     }
   }, [dark])
 
@@ -110,10 +118,12 @@ export default function Dashboard({ data: initialData }: { data: DashboardData }
             onClick={() => setDark(d => !d)}
             title={dark ? 'Chuyển sang Light Mode' : 'Chuyển sang Dark Mode'}
             style={{
-              marginRight:12, padding:'5px 12px', borderRadius:20,
+              marginRight:10, padding:'6px 13px', borderRadius:10,
               border:'1px solid var(--border)', background:'var(--bg3)',
-              color:'var(--text)', fontSize:11, cursor:'pointer',
+              color:'var(--text)', fontSize:11, fontWeight:500, cursor:'pointer',
+              boxShadow:'var(--shadow-sm)',
               display:'flex', alignItems:'center', gap:6, fontFamily:'inherit',
+              transition:'border-color .15s, background .15s',
             }}
           >
             {dark ? '☀️ Light' : '🌙 Dark'}
@@ -125,11 +135,13 @@ export default function Dashboard({ data: initialData }: { data: DashboardData }
             disabled={refreshing}
             title="Cập nhật ngay"
             style={{
-              marginRight:12, padding:'5px 12px', borderRadius:20,
+              marginRight:16, padding:'6px 13px', borderRadius:10,
               border:'1px solid var(--border)', background:'var(--bg3)',
               color:refreshing ? 'var(--text3)' : '#2ECC8A',
-              fontSize:11, cursor:refreshing?'default':'pointer',
+              fontSize:11, fontWeight:500, cursor:refreshing?'default':'pointer',
+              boxShadow:'var(--shadow-sm)',
               display:'flex', alignItems:'center', gap:6, fontFamily:'inherit',
+              transition:'border-color .15s, background .15s',
             }}
           >
             {refreshing ? '⏳ Đang tải...' : `🔄 ${countdown}s`}

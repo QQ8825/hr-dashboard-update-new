@@ -1,15 +1,119 @@
 'use client'
 // components/tabs/TabPosition.tsx
-import type { DashboardData } from '@/lib/sheets'
+import { useState, useMemo } from 'react'
+import type { DashboardData, PositionStat } from '@/lib/sheets'
 import { Card, CardTitle, PctBar } from '../ui'
 
 const p = (n: number, d: number) => d > 0 ? `${(n/d*100).toFixed(1)}%` : '—'
 
+// dd/mm/yyyy -> số yyyymmdd để so sánh khoảng thời gian
+function dateStrToNum(s: string): number {
+  if (!s) return 0
+  const parts = s.split('/')
+  if (parts.length < 3) return 0
+  const d = +parts[0], m = +parts[1], y = +parts[2]
+  if (!d || !m || !y) return 0
+  return y * 10000 + m * 100 + d
+}
+
+// value của <input type="date"> là yyyy-mm-dd
+function inputToNum(s: string): number {
+  if (!s) return 0
+  const parts = s.split('-')
+  if (parts.length < 3) return 0
+  return +parts[0] * 10000 + +parts[1] * 100 + +parts[2]
+}
+
 export default function TabPosition({ data }: { data: DashboardData }) {
-  const maxCV = data.byPosition[0]?.total || 1
+  const [filterPos, setFilterPos] = useState<string>('all')
+  const [fromDate,  setFromDate]  = useState<string>('')
+  const [toDate,    setToDate]    = useState<string>('')
+
+  // Danh sách vị trí đầy đủ (ổn định) cho dropdown
+  const allPositions = useMemo(
+    () => data.byPosition.map(pos => pos.viTri),
+    [data.byPosition]
+  )
+
+  // Lọc ứng viên theo khoảng thời gian rồi tính lại thống kê theo vị trí
+  const { rows, rangeTotal } = useMemo(() => {
+    const from = inputToNum(fromDate)
+    const to   = inputToNum(toDate)
+
+    const inRange = data.candidates.filter(c => {
+      // Nếu có chọn mốc thời gian mà ứng viên không có ngày hợp lệ -> loại
+      if (from || to) {
+        const n = dateStrToNum(c.ngay)
+        if (!n) return false
+        if (from && n < from) return false
+        if (to   && n > to)   return false
+      }
+      return true
+    })
+
+    const map = new Map<string, PositionStat>()
+    for (const c of inRange) {
+      const key = c.viTri || 'Chưa xác định'
+      if (!map.has(key)) map.set(key, { viTri: key, total: 0, hrPass: 0, thamGiaPV: 0, nhanViec: 0 })
+      const ps = map.get(key)!
+      ps.total++
+      if (c.hrLocCV === 'Pass')   ps.hrPass++
+      if (c.thamGiaPV === 'Có')   ps.thamGiaPV++
+      if (c.uvNhanViec === 'Có')  ps.nhanViec++
+    }
+
+    let list = [...map.values()].sort((a, b) => b.total - a.total)
+    if (filterPos !== 'all') list = list.filter(ps => ps.viTri === filterPos)
+
+    return { rows: list, rangeTotal: inRange.length }
+  }, [data.candidates, fromDate, toDate, filterPos])
+
+  const maxCV = rows[0]?.total || 1
+  const tongCV = rows.reduce((s, r) => s + r.total, 0)
+
+  const inputStyle: React.CSSProperties = {
+    background: 'var(--bg4)', border: '1px solid var(--border)', borderRadius: 8,
+    color: 'var(--text)', padding: '7px 12px', fontSize: 11, fontFamily: 'inherit',
+    outline: 'none', cursor: 'pointer',
+  }
+
+  const hasFilter = filterPos !== 'all' || !!fromDate || !!toDate
+
   return (
     <Card>
-      <CardTitle sub="Top vị trí tuyển dụng — sắp xếp theo số lượng CV">💼 Báo Cáo Theo Vị Trí</CardTitle>
+      <CardTitle sub="Top vị trí tuyển dụng — lọc theo vị trí và khoảng thời gian tự chọn">💼 Báo Cáo Theo Vị Trí</CardTitle>
+
+      {/* FILTERS */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+        <select value={filterPos} onChange={e => setFilterPos(e.target.value)} style={{ ...inputStyle, minWidth: 220, maxWidth: 320 }}>
+          <option value="all">💼 Tất cả vị trí</option>
+          {allPositions.map(v => <option key={v} value={v}>{v}</option>)}
+        </select>
+
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text2)' }}>
+          📅 Từ
+          <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} style={inputStyle} />
+        </label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text2)' }}>
+          đến
+          <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} style={inputStyle} />
+        </label>
+
+        {hasFilter && (
+          <button
+            onClick={() => { setFilterPos('all'); setFromDate(''); setToDate('') }}
+            style={{ ...inputStyle, color: '#F75454', border: '1px solid #F7545444' }}
+          >
+            ✕ Xoá lọc
+          </button>
+        )}
+
+        <div style={{ fontSize: 11, color: 'var(--text2)', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+          <b style={{ color: 'var(--text)' }}>{rows.length}</b> vị trí • <b style={{ color: '#4F8EF7' }}>{tongCV}</b> CV
+          {(fromDate || toDate) && <span style={{ color: 'var(--text3)' }}> trong khoảng</span>}
+        </div>
+      </div>
+
       <div style={{ overflowX:'auto' }}>
         <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
           <thead>
@@ -21,18 +125,24 @@ export default function TabPosition({ data }: { data: DashboardData }) {
             </tr>
           </thead>
           <tbody>
-            {data.byPosition.map((pos, i) => (
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={9} style={{ padding:'40px', textAlign:'center', color:'var(--text3)' }}>
+                  Không có dữ liệu phù hợp với bộ lọc
+                </td>
+              </tr>
+            ) : rows.map((pos, i) => (
               <tr key={pos.viTri} style={{ background:i%2===0?'var(--bg3)':'var(--bg4)' }}>
                 <td style={{ padding:'9px 10px',
                   color:i<3?['#FFD700','#C0C0C0','#CD7F32'][i]:'var(--text3)', fontWeight:600 }}>{i+1}</td>
                 <td style={{ padding:'9px 10px', color:'var(--text)', fontWeight:500, maxWidth:280,
-                  overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                  overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }} title={pos.viTri}>
                   {pos.viTri}
                 </td>
                 <td style={{ padding:'9px 10px', textAlign:'center', fontFamily:'Space Mono,monospace',
                   fontSize:13, fontWeight:700, color:'#4F8EF7' }}>{pos.total}</td>
                 <td style={{ padding:'9px 10px', textAlign:'center', color:'var(--text2)' }}>
-                  {p(pos.total, data.stats.total)}
+                  {p(pos.total, rangeTotal)}
                 </td>
                 <td style={{ padding:'9px 10px', textAlign:'center', color:'#2ECC8A' }}>{pos.hrPass}</td>
                 <td style={{ padding:'9px 10px', textAlign:'center', color:'#9B6FF7' }}>{pos.thamGiaPV}</td>

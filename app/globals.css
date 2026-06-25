@@ -1,18 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Dark mode defaults */
-  --bg:      #0D1117;
-  --bg2:     #161B22;
-  --bg3:     #1C2128;
-  --bg4:     #21262D;
-  --border:  #30363D;
-  --border2: #3D444D;
-  --text:    #E6EDF3;
-  --text2:   #8B949E;
-  --text3:   #6E7681;
+  /* Dark mode defaults — deeper, slightly blue-tinted for more depth */
+  --bg:      #0B0E14;
+  --bg2:     #11151D;
+  --bg3:     #161B26;
+  --bg4:     #1E2430;
+  --border:  #262D3A;
+  --border2: #343D4D;
+  --text:    #EAF0F7;
+  --text2:   #93A0B4;
+  --text3:   #66718A;
+
+  /* Elevation + ambient (theme-dependent, also set via JS) */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
+  --shadow:    0 1px 2px rgba(0,0,0,.4), 0 12px 32px -16px rgba(0,0,0,.7);
+  --ambient:   radial-gradient(1200px 460px at 50% -8%, rgba(79,142,247,.12), rgba(155,111,247,.06) 38%, transparent 68%);
+  --card-hi:   rgba(255,255,255,.045);
+
   /* Accent colors — fixed regardless of mode */
   --blue:    #4F8EF7;
   --green:   #2ECC8A;
@@ -30,12 +37,22 @@ body {
   font-size: 13px;
   line-height: 1.5;
   min-height: 100vh;
-  transition: background .2s, color .2s;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background .25s ease, color .25s ease;
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg2); }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--text3); background-clip: padding-box; }
 
-.mono { font-family: 'Space Mono', monospace; }
+.mono     { font-family: 'Space Mono', monospace; }
+.display  { font-family: 'Space Grotesk', 'Be Vietnam Pro', sans-serif; }
+
+::selection { background: rgba(79,142,247,.3); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

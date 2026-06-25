@@ -6,7 +6,9 @@ export function Card({ children, style }: { children: React.ReactNode; style?: R
   return (
     <div style={{
       background:'var(--bg3)', border:'1px solid var(--border)',
-      borderRadius:12, padding:'18px 20px', ...style
+      borderRadius:14, padding:'18px 20px',
+      boxShadow:'var(--shadow), inset 0 1px 0 var(--card-hi)',
+      ...style
     }}>
       {children}
     </div>
@@ -17,8 +19,8 @@ export function Card({ children, style }: { children: React.ReactNode; style?: R
 export function CardTitle({ children, sub }: { children: React.ReactNode; sub?: string }) {
   return (
     <div style={{ marginBottom: sub ? 4 : 14 }}>
-      <div style={{ fontSize:13, fontWeight:600, color:'var(--text)' }}>{children}</div>
-      {sub && <div style={{ fontSize:11, color:'var(--text3)', marginTop:2, marginBottom:12 }}>{sub}</div>}
+      <div style={{ fontFamily:'Space Grotesk,Be Vietnam Pro,sans-serif', fontSize:14, fontWeight:600, letterSpacing:'-.01em', color:'var(--text)' }}>{children}</div>
+      {sub && <div style={{ fontSize:11, color:'var(--text3)', marginTop:3, marginBottom:12 }}>{sub}</div>}
     </div>
   )
 }
