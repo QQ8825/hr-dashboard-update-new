@@ -1,6 +1,6 @@
 'use client'
 // components/Dashboard.tsx
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { DashboardData } from '@/lib/sheets'
 import styles from './Dashboard.module.css'
 import TabOverview  from './tabs/TabOverview'
@@ -25,7 +25,7 @@ const TABS = [
   { id:'raw',      icon:'📋', label:'Raw Data'         },
 ]
 
-const REFRESH_SEC = 60
+const REFRESH_SEC = 30
 
 export default function Dashboard({ data: initialData }: { data: DashboardData }) {
   const [tab, setTab]         = useState('overview')
@@ -34,9 +34,12 @@ export default function Dashboard({ data: initialData }: { data: DashboardData }
   const [countdown, setCountdown] = useState(REFRESH_SEC)
   const [refreshing, setRefreshing] = useState(false)
   const [lastUpdated, setLastUpdated] = useState(initialData.updatedAt)
+  const fetchingRef = useRef(false)
 
   // Fetch dữ liệu mới từ API
   const fetchData = useCallback(async () => {
+    if (fetchingRef.current) return // tránh gọi chồng khi request trước chưa xong
+    fetchingRef.current = true
     setRefreshing(true)
     try {
       const res = await fetch('/api/data', { cache: 'no-store' })
@@ -48,16 +51,23 @@ export default function Dashboard({ data: initialData }: { data: DashboardData }
     } catch (e) {
       console.error('Refresh failed:', e)
     } finally {
+      fetchingRef.current = false
       setRefreshing(false)
       setCountdown(REFRESH_SEC)
     }
   }, [])
 
-  // Auto-refresh mỗi 60 giây
+  // Auto-refresh định kỳ
   useEffect(() => {
     const interval = setInterval(fetchData, REFRESH_SEC * 1000)
     return () => clearInterval(interval)
   }, [fetchData])
+
+  // Chuyển tab → lấy ngay dữ liệu mới nhất cho tab đó
+  useEffect(() => {
+    fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab])
 
   // Đếm ngược countdown
   useEffect(() => {
@@ -71,35 +81,41 @@ export default function Dashboard({ data: initialData }: { data: DashboardData }
   useEffect(() => {
     const root = document.documentElement
     if (dark) {
-      root.style.setProperty('--bg',      '#0B0E14')
-      root.style.setProperty('--bg2',     '#11151D')
-      root.style.setProperty('--bg3',     '#161B26')
-      root.style.setProperty('--bg4',     '#1E2430')
-      root.style.setProperty('--border',  '#262D3A')
-      root.style.setProperty('--border2', '#343D4D')
-      root.style.setProperty('--text',    '#EAF0F7')
-      root.style.setProperty('--text2',   '#93A0B4')
-      root.style.setProperty('--text3',   '#66718A')
+      root.style.setProperty('--bg',      '#05080F')
+      root.style.setProperty('--bg2',     '#0A101C')
+      root.style.setProperty('--bg3',     '#0F1728')
+      root.style.setProperty('--bg4',     '#16223A')
+      root.style.setProperty('--border',  '#1D2B47')
+      root.style.setProperty('--border2', '#2D4066')
+      root.style.setProperty('--text',    '#E8F1FF')
+      root.style.setProperty('--text2',   '#8FA3C7')
+      root.style.setProperty('--text3',   '#5D7199')
       root.style.setProperty('--shadow-sm', '0 1px 2px rgba(0,0,0,.35)')
       root.style.setProperty('--shadow',    '0 1px 2px rgba(0,0,0,.4), 0 12px 32px -16px rgba(0,0,0,.7)')
+      root.style.setProperty('--shadow-lg', '0 2px 4px rgba(0,0,0,.35), 0 24px 48px -20px rgba(0,0,0,.65)')
       root.style.setProperty('--card-hi',   'rgba(255,255,255,.045)')
-      root.style.setProperty('--ambient',   'radial-gradient(1200px 460px at 50% -8%, rgba(79,142,247,.12), rgba(155,111,247,.06) 38%, transparent 68%)')
-      document.body.style.background = '#0B0E14'
+      root.style.setProperty('--row-hover', 'rgba(51,166,255,.09)')
+      root.style.setProperty('--gridline',  'rgba(51,166,255,.055)')
+      root.style.setProperty('--ambient',   'radial-gradient(1100px 480px at 18% -10%, rgba(0,200,255,.15), transparent 62%), radial-gradient(1000px 420px at 82% -8%, rgba(180,76,255,.13), transparent 60%), radial-gradient(700px 320px at 50% 0%, rgba(255,78,205,.06), transparent 65%)')
+      document.body.style.background = '#05080F'
     } else {
-      root.style.setProperty('--bg',      '#F1F4F9')
+      root.style.setProperty('--bg',      '#EEF3FA')
       root.style.setProperty('--bg2',     '#FFFFFF')
       root.style.setProperty('--bg3',     '#FFFFFF')
-      root.style.setProperty('--bg4',     '#EDF1F7')
-      root.style.setProperty('--border',  '#E2E8F2')
-      root.style.setProperty('--border2', '#CDD6E4')
-      root.style.setProperty('--text',    '#0F1729')
-      root.style.setProperty('--text2',   '#5B6678')
-      root.style.setProperty('--text3',   '#8A93A6')
+      root.style.setProperty('--bg4',     '#E9EFF9')
+      root.style.setProperty('--border',  '#D9E3F2')
+      root.style.setProperty('--border2', '#BCCCE4')
+      root.style.setProperty('--text',    '#0D1526')
+      root.style.setProperty('--text2',   '#52617A')
+      root.style.setProperty('--text3',   '#8291A8')
       root.style.setProperty('--shadow-sm', '0 1px 2px rgba(16,24,40,.05)')
       root.style.setProperty('--shadow',    '0 1px 2px rgba(16,24,40,.06), 0 12px 32px -16px rgba(16,24,40,.16)')
+      root.style.setProperty('--shadow-lg', '0 2px 4px rgba(16,24,40,.06), 0 24px 48px -20px rgba(16,24,40,.22)')
       root.style.setProperty('--card-hi',   'rgba(255,255,255,.9)')
-      root.style.setProperty('--ambient',   'radial-gradient(1200px 460px at 50% -8%, rgba(79,142,247,.10), rgba(155,111,247,.04) 38%, transparent 70%)')
-      document.body.style.background = '#F1F4F9'
+      root.style.setProperty('--row-hover', 'rgba(51,166,255,.08)')
+      root.style.setProperty('--gridline',  'rgba(30,70,140,.05)')
+      root.style.setProperty('--ambient',   'radial-gradient(1100px 480px at 18% -10%, rgba(0,200,255,.07), transparent 58%), radial-gradient(1000px 420px at 82% -8%, rgba(180,76,255,.05), transparent 55%), radial-gradient(700px 320px at 50% 0%, rgba(255,78,205,.025), transparent 60%)')
+      document.body.style.background = '#EEF3FA'
     }
   }, [dark])
 
@@ -119,14 +135,8 @@ export default function Dashboard({ data: initialData }: { data: DashboardData }
           <button
             onClick={() => setDark(d => !d)}
             title={dark ? 'Chuyển sang Light Mode' : 'Chuyển sang Dark Mode'}
-            style={{
-              marginRight:10, padding:'6px 13px', borderRadius:10,
-              border:'1px solid var(--border)', background:'var(--bg3)',
-              color:'var(--text)', fontSize:11, fontWeight:500, cursor:'pointer',
-              boxShadow:'var(--shadow-sm)',
-              display:'flex', alignItems:'center', gap:6, fontFamily:'inherit',
-              transition:'border-color .15s, background .15s',
-            }}
+            className={styles.headerBtn}
+            style={{ marginRight:10 }}
           >
             {dark ? '☀️ Light' : '🌙 Dark'}
           </button>
@@ -136,15 +146,8 @@ export default function Dashboard({ data: initialData }: { data: DashboardData }
             onClick={fetchData}
             disabled={refreshing}
             title="Cập nhật ngay"
-            style={{
-              marginRight:16, padding:'6px 13px', borderRadius:10,
-              border:'1px solid var(--border)', background:'var(--bg3)',
-              color:refreshing ? 'var(--text3)' : '#2ECC8A',
-              fontSize:11, fontWeight:500, cursor:refreshing?'default':'pointer',
-              boxShadow:'var(--shadow-sm)',
-              display:'flex', alignItems:'center', gap:6, fontFamily:'inherit',
-              transition:'border-color .15s, background .15s',
-            }}
+            className={styles.headerBtn}
+            style={{ marginRight:16, color:refreshing ? 'var(--text3)' : '#00E08F' }}
           >
             {refreshing ? '⏳ Đang tải...' : `🔄 ${countdown}s`}
           </button>
