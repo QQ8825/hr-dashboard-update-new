@@ -76,27 +76,29 @@ export default function TabOverview({ data }: { data: DashboardData }) {
           <span style={{ width:4, height:14, borderRadius:2, background:'var(--accent-grad)' }} />
           📅 Xem theo
         </span>
-        <div style={{ display:'flex', alignItems:'center', gap:5, flexWrap:'wrap',
-          background:'var(--bg4)', border:'1px solid var(--border)',
-          borderRadius:999, padding:4 }}>
-          {[null, 1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
-            <button
-              key={m ?? 'all'}
-              className="chip"
-              onClick={() => setSelectedMonth(m)}
-              style={{
-                padding:'5px 13px', borderRadius:999, border:'1px solid transparent',
-                fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit',
-                background: selectedMonth===m ? 'linear-gradient(135deg,#4F8EF7,#9B6FF7)' : 'transparent',
-                color: selectedMonth===m ? '#fff' : 'var(--text2)',
-                boxShadow: selectedMonth===m
-                  ? '0 4px 12px -4px rgba(99,125,247,.75), inset 0 1px 0 rgba(255,255,255,.22)'
-                  : 'none',
-              }}
-            >
-              {m === null ? 'Cả năm' : `T${m}`}
-            </button>
-          ))}
+        <div style={{ position:'relative', display:'inline-flex' }}>
+          <select
+            className="ui-input"
+            value={selectedMonth === null ? 'all' : String(selectedMonth)}
+            onChange={e => setSelectedMonth(e.target.value === 'all' ? null : +e.target.value)}
+            style={{
+              appearance:'none', WebkitAppearance:'none',
+              background:'var(--bg4)', border:'1px solid var(--border2)',
+              borderRadius:10, padding:'8px 34px 8px 14px', minWidth:170,
+              color:'var(--text)', fontSize:12, fontWeight:600,
+              fontFamily:'inherit', outline:'none', cursor:'pointer',
+              boxShadow:'var(--shadow-sm)',
+            }}
+          >
+            <option value="all">📅 Cả năm 2026</option>
+            {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+              <option key={m} value={String(m)}>Tháng {m}</option>
+            ))}
+          </select>
+          <span style={{
+            position:'absolute', right:12, top:'50%', transform:'translateY(-50%)',
+            pointerEvents:'none', fontSize:9, color:'var(--text2)',
+          }}>▼</span>
         </div>
         <div style={{
           marginLeft:'auto', display:'inline-flex', alignItems:'center', gap:8,
