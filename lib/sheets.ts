@@ -5,7 +5,10 @@ const GID_ORDER = '1051409117' // Sheet "1.1 Đơn hàng"
 const GID_PERSONNEL = '679242831' // Sheet "Tổng quan nhân sự"
 
 function getCsvUrl(gid: string) {
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`
+  // &cb=<timestamp> làm mỗi request thành một URL khác nhau, ép cache CDN
+  // của Google Sheets trả dữ liệu mới nhất thay vì bản cũ (tham số thừa
+  // được endpoint export bỏ qua nên không ảnh hưởng nội dung)
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}&cb=${Date.now()}`
 }
 
 function parseCsv(text: string): string[][] {
@@ -319,10 +322,14 @@ function parsePersonnel(rows: string[][]): PersonnelData {
 }
 
 export async function fetchDashboardData(): Promise<DashboardData> {
+  const noCache = {
+    cache: 'no-store' as const,
+    headers: { 'Cache-Control': 'no-cache, no-store, max-age=0', 'Pragma': 'no-cache' },
+  }
   const [resMain, resOrder, resPersonnel] = await Promise.allSettled([
-    fetch(getCsvUrl(GID_MAIN),  { cache: 'no-store' }),
-    fetch(getCsvUrl(GID_ORDER), { cache: 'no-store' }),
-    fetch(getCsvUrl(GID_PERSONNEL), { cache: 'no-store' }),
+    fetch(getCsvUrl(GID_MAIN),  noCache),
+    fetch(getCsvUrl(GID_ORDER), noCache),
+    fetch(getCsvUrl(GID_PERSONNEL), noCache),
   ])
 
   if (resMain.status === 'rejected' || !resMain.value.ok)

@@ -1,6 +1,6 @@
 'use client'
 // components/Dashboard.tsx
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { DashboardData } from '@/lib/sheets'
 import styles from './Dashboard.module.css'
 import TabOverview  from './tabs/TabOverview'
@@ -25,7 +25,7 @@ const TABS = [
   { id:'raw',      icon:'📋', label:'Raw Data'         },
 ]
 
-const REFRESH_SEC = 60
+const REFRESH_SEC = 30
 
 export default function Dashboard({ data: initialData }: { data: DashboardData }) {
   const [tab, setTab]         = useState('overview')
@@ -34,9 +34,12 @@ export default function Dashboard({ data: initialData }: { data: DashboardData }
   const [countdown, setCountdown] = useState(REFRESH_SEC)
   const [refreshing, setRefreshing] = useState(false)
   const [lastUpdated, setLastUpdated] = useState(initialData.updatedAt)
+  const fetchingRef = useRef(false)
 
   // Fetch dữ liệu mới từ API
   const fetchData = useCallback(async () => {
+    if (fetchingRef.current) return // tránh gọi chồng khi request trước chưa xong
+    fetchingRef.current = true
     setRefreshing(true)
     try {
       const res = await fetch('/api/data', { cache: 'no-store' })
@@ -48,16 +51,23 @@ export default function Dashboard({ data: initialData }: { data: DashboardData }
     } catch (e) {
       console.error('Refresh failed:', e)
     } finally {
+      fetchingRef.current = false
       setRefreshing(false)
       setCountdown(REFRESH_SEC)
     }
   }, [])
 
-  // Auto-refresh mỗi 60 giây
+  // Auto-refresh định kỳ
   useEffect(() => {
     const interval = setInterval(fetchData, REFRESH_SEC * 1000)
     return () => clearInterval(interval)
   }, [fetchData])
+
+  // Chuyển tab → lấy ngay dữ liệu mới nhất cho tab đó
+  useEffect(() => {
+    fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab])
 
   // Đếm ngược countdown
   useEffect(() => {
