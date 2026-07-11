@@ -124,7 +124,10 @@ export default function Dashboard({ data: initialData }: { data: DashboardData }
       {/* HEADER */}
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <div className={styles.logo}>👥</div>
+          <div className={styles.logo}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icons/icon-192.png" alt="HQ Group" />
+          </div>
           <div>
             <div className={styles.title}>DASHBOARD BÁO CÁO TUYỂN DỤNG</div>
             <div className={styles.subtitle}>HQ Group — Phòng Nhân Sự & Tuyển Dụng</div>
